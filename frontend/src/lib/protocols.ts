@@ -26,15 +26,28 @@ interface ErrorDetail {
   message?: string
 }
 
+interface ValidationIssue {
+  loc?: (string | number)[]
+  type?: string
+  ctx?: { max_length?: number }
+}
+
 async function readError(response: Response): Promise<ApiError> {
-  let detail: string | ErrorDetail | undefined
+  let detail: string | ErrorDetail | ValidationIssue[] | undefined
   try {
-    const payload = await response.json() as { detail?: string | ErrorDetail }
+    const payload = await response.json() as { detail?: string | ErrorDetail | ValidationIssue[] }
     detail = payload.detail
   } catch {
     // swallow — some errors return plain text
   }
   if (typeof detail === 'string') return new ApiError(detail, response.status)
+  if (Array.isArray(detail)) {
+    const nameError = detail.find((issue) => issue.loc?.at(-1) === 'name' && issue.type === 'string_too_long')
+    if (typeof nameError?.ctx?.max_length === 'number') {
+      return new ApiError(`方案名称最多 ${nameError.ctx.max_length} 个字符，请缩短后再试。`, response.status, nameError.type)
+    }
+    return new ApiError('输入内容未通过校验，请检查后重试。', response.status)
+  }
   return new ApiError(
     detail?.message || `请求失败（${response.status}）`,
     response.status,

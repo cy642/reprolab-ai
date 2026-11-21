@@ -1,4 +1,4 @@
-import { API_BASE_URL, apiFetch, downloadApiFile, getDemoAccessCode } from '../lib/api'
+import { API_BASE_URL, downloadApiFile, getDemoAccessCode } from '../lib/api'
 import { useCallback, useEffect, useState } from 'react'
 import {
   AlertCircle,
@@ -28,12 +28,13 @@ import { EvidenceModal } from '../components/papers/EvidenceModal'
 import { ProtocolFlow } from '../components/protocols/ProtocolFlow'
 import { ParameterSourceChain } from '../components/protocols/ParameterSourceChain'
 import { ApiError, deleteProtocol, protocolExportPath, generateProtocol, getProtocol, listProtocols, listProtocolVersions, saveProtocolVersion, updateProtocol } from '../lib/protocols'
-import { getPaper, getPageText } from '../lib/papers'
+import { getPaper, getPageText, listPapers } from '../lib/papers'
 import type { Evidence, PaperDetail, PaperSummary } from '../types/paper'
 import type { ProtocolDetail, ProtocolParameter, ProtocolStep, ProtocolSummary, ProtocolVersion } from '../types/protocol'
 import { formatDateTime, INFO_META, PROTOCOL_STATUS, STATUS_META } from '../components/protocols/meta'
 
 interface ToastState { message: string; tone: ToastTone }
+const PROTOCOL_NAME_LIMIT = 120
 
 export function ProtocolBuilder() {
   const [protocols, setProtocols] = useState<ProtocolSummary[]>([])
@@ -49,6 +50,7 @@ export function ProtocolBuilder() {
   const [generateLoading, setGenerateLoading] = useState(false)
   const [generatePaperId, setGeneratePaperId] = useState('')
   const [generateName, setGenerateName] = useState('')
+  const generateNameTooLong = [...generateName.trim()].length > PROTOCOL_NAME_LIMIT
   const [toast, setToast] = useState<ToastState | null>(null)
   const [dirty, setDirty] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'workflow' | 'params'>('overview')
@@ -69,7 +71,7 @@ export function ProtocolBuilder() {
     try {
       const [protoResp, paperResp] = await Promise.all([
         listProtocols(),
-        apiFetch('/api/papers').then((r) => r.json() as Promise<{ items: PaperSummary[] }>),
+        listPapers(),
       ])
       setProtocols(protoResp.items)
       setPapers(paperResp.items)
@@ -308,8 +310,14 @@ export function ProtocolBuilder() {
     }
   }
 
+  const closeGenerateDialog = () => {
+    setGenerateOpen(false)
+    setGenerateName('')
+    setGeneratePaperId('')
+  }
+
   const handleGenerate = async () => {
-    if (!generatePaperId) return
+    if (!generatePaperId || generateNameTooLong) return
     setGenerateLoading(true)
     try {
       const protocol = await generateProtocol({
@@ -317,9 +325,7 @@ export function ProtocolBuilder() {
         name: generateName.trim() || undefined,
       })
       setSelectedId(protocol.id)
-      setGenerateOpen(false)
-      setGenerateName('')
-      setGeneratePaperId('')
+      closeGenerateDialog()
       setDirty(false)
       setToast({ message: `已生成「${protocol.name}」`, tone: 'success' })
       await refreshList(true)
@@ -405,7 +411,7 @@ export function ProtocolBuilder() {
               {selectablePapers.map((paper) => (
                 <button
                   key={paper.id}
-                  onClick={() => { setGeneratePaperId(paper.id); setGenerateName(paper.title); setGenerateOpen(true) }}
+                  onClick={() => { setGeneratePaperId(paper.id); setGenerateName(''); setGenerateOpen(true) }}
                   className="w-full rounded-lg border border-transparent p-2.5 text-left transition hover:border-primary/20 hover:bg-white/[.025]"
                 >
                   <div className="flex items-center gap-2">
@@ -770,7 +776,7 @@ export function ProtocolBuilder() {
       </div>
 
       {/* Generate modal */}
-      <Modal open={generateOpen} onClose={() => { if (!generateLoading) { setGenerateOpen(false); setGenerateName(''); setGeneratePaperId('') } }} title="从已解析论文生成实验方案" description="选择论文后点击生成，Protocol Agent 会基于已抽取的结构化字段创建可追溯的工作流。">
+      <Modal open={generateOpen} onClose={() => { if (!generateLoading) closeGenerateDialog() }} title="从已解析论文生成实验方案" description="选择论文后点击生成，Protocol Agent 会基于已抽取的结构化字段创建可追溯的工作流。">
         <form onSubmit={(event) => { event.preventDefault(); void handleGenerate() }} className="space-y-5">
           <label className="block">
             <span className="text-xs font-medium text-ink">来源论文</span>
@@ -783,11 +789,14 @@ export function ProtocolBuilder() {
           </label>
           <label className="block">
             <span className="text-xs font-medium text-ink">方案名称（可选）</span>
-            <input value={generateName} onChange={(event) => setGenerateName(event.target.value)} className="field mt-2" placeholder="留空则使用论文标题" />
+            <input value={generateName} onChange={(event) => setGenerateName(event.target.value)} className="field mt-2" placeholder="留空则根据论文标题自动命名" aria-invalid={generateNameTooLong} aria-describedby="protocol-generate-name-help" />
+            <span id="protocol-generate-name-help" className={`mt-2 block text-xs ${generateNameTooLong ? 'text-danger' : 'text-muted'}`}>
+              {generateNameTooLong ? `方案名称最多 ${PROTOCOL_NAME_LIMIT} 个字符，请缩短后再生成。` : `自定义名称最多 ${PROTOCOL_NAME_LIMIT} 个字符。`}
+            </span>
           </label>
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => setGenerateOpen(false)} disabled={generateLoading}>取消</Button>
-            <Button type="submit" variant="primary" disabled={!generatePaperId || generateLoading} icon={generateLoading ? <LoaderCircle size={14} className="animate-spin" /> : <WandSparkles size={14} />}>
+            <Button variant="ghost" onClick={closeGenerateDialog} disabled={generateLoading}>取消</Button>
+            <Button type="submit" variant="primary" disabled={!generatePaperId || generateNameTooLong || generateLoading} icon={generateLoading ? <LoaderCircle size={14} className="animate-spin" /> : <WandSparkles size={14} />}>
               {generateLoading ? '生成中…' : '生成实验方案'}
             </Button>
           </div>
