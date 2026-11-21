@@ -13,6 +13,7 @@ interface ModalProps {
 
 export function Modal({ open, onClose, title, description, children, className }: ModalProps) {
   const titleId = useId()
+  const hasCustomWidth = className?.split(/\s+/).some((name) => name.startsWith('max-w-'))
   useEffect(() => {
     if (!open) return
     const previousOverflow = document.body.style.overflow
@@ -31,7 +32,7 @@ export function Modal({ open, onClose, title, description, children, className }
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby={titleId}>
       <button className="absolute inset-0 cursor-default bg-[#050914]/80 backdrop-blur-sm" onClick={onClose} aria-label="关闭弹窗" />
-      <div className={cn('relative max-h-[90vh] w-full max-w-lg animate-fade-up overflow-y-auto rounded-2xl border border-white/10 bg-surface shadow-lift', className)}>
+      <div className={cn('relative max-h-[90vh] w-full animate-fade-up overflow-y-auto rounded-2xl border border-white/10 bg-surface shadow-lift', !hasCustomWidth && 'max-w-lg', className)}>
         <div className="flex items-start justify-between gap-5 border-b border-white/[.06] px-6 py-5">
           <div>
             <h2 id={titleId} className="font-display text-lg font-semibold text-ink">{title}</h2>

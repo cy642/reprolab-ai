@@ -40,6 +40,7 @@ export function EvidenceModal({ evidence, label, pageText, loading, onClose, pap
   }, [protectedPaper])
 
   const pdfUrl = protectedPaper ? (file?.paper === protectedPaper ? file.url : '') : paperId ? getPaperFileUrl(paperId) : ''
+  const pdfPageUrl = pdfUrl && evidence ? `${pdfUrl}#page=${evidence.page}&view=FitH` : ''
   return (
     <Modal
       open={Boolean(evidence)}
@@ -54,12 +55,13 @@ export function EvidenceModal({ evidence, label, pageText, loading, onClose, pap
             <section>
               <div className="mb-2 flex items-center gap-2 font-mono text-[9px] uppercase tracking-[.16em] text-accent">
                 <FileText size={12} /> Native PDF · Page {evidence.page}
+                {pdfPageUrl && <a className="ml-auto text-xs normal-case tracking-normal underline underline-offset-4" href={pdfPageUrl} target="_blank" rel="noopener noreferrer">打开原始 PDF</a>}
               </div>
-              {pdfUrl ? <iframe
+              {pdfPageUrl ? <iframe
                 key={`${evidence.id}-${evidence.page}`}
                 data-testid="evidence-pdf-frame"
                 data-page={evidence.page}
-                src={`${pdfUrl}#page=${evidence.page}&view=FitH`}
+                src={pdfPageUrl}
                 title={`PDF 第 ${evidence.page} 页`}
                 className="h-[58vh] w-full rounded-xl border border-white/[.08] bg-white"
               /> : <p className="py-8 text-center text-xs text-muted">{file?.paper === protectedPaper ? '无法加载 PDF 原文。' : '正在加载 PDF 原文…'}</p>}
