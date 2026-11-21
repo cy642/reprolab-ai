@@ -49,6 +49,7 @@ Environment=LLM_BASE_URL=http://localhost/v1
 Environment=LLM_UNIX_SOCKET=/run/reprolab-openai-gateway.sock
 Environment=LLM_MODEL=gpt-6.2-sol
 Environment=LLM_API_KEY=reprolab-private-socket
+Environment=REPROLAB_LLM_REQUEST_LIMIT=12
 Environment=LLM_TIMEOUT_SECONDS=85"
   fi
   sudo -n tee "/etc/systemd/system/reprolab-demo-$role.service" >/dev/null <<UNIT

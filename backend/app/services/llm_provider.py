@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import sqlite3
 import time
 from contextlib import contextmanager
 from contextvars import ContextVar
@@ -48,8 +49,25 @@ class LLMProvider:
         self.timeout = settings.llm_timeout
         self.configured = settings.llm_configured
         self.unix_socket = os.getenv("LLM_UNIX_SOCKET")
+        limit = os.getenv("REPROLAB_LLM_REQUEST_LIMIT")
+        self.request_limit = max(0, int(limit)) if limit is not None else None
+        self.request_ledger = settings.storage_dir / "llm_request_budget.sqlite3"
+
+    def _reserve_request(self) -> None:
+        if self.request_limit is None:
+            return
+        try:
+            with sqlite3.connect(self.request_ledger) as connection:
+                connection.execute("CREATE TABLE IF NOT EXISTS request_budget (id INTEGER PRIMARY KEY, used INTEGER NOT NULL)")
+                connection.execute("INSERT OR IGNORE INTO request_budget (id, used) VALUES (1, 0)")
+                reserved = connection.execute("UPDATE request_budget SET used = used + 1 WHERE id = 1 AND used < ?", (self.request_limit,))
+                if not reserved.rowcount:
+                    raise LLMError("实时演示的模型请求额度已用完，预置案例与确定性流程仍可使用。")
+        except sqlite3.Error as exc:
+            raise LLMError("实时演示的模型请求额度暂不可用。") from exc
 
     def _post(self, client: httpx.Client, payload: dict, *, retry: bool) -> tuple[httpx.Response, dict]:
+        self._reserve_request()
         trace = {
             "provider": "openai" if urlsplit(self.base_url).hostname == "api.openai.com" else "openai_compatible",
             "model": self.model,

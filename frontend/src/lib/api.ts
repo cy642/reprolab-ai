@@ -28,6 +28,20 @@ export function setDemoAccessCode(code: string): void {
   else sessionStorage.removeItem(DEMO_SESSION_KEY)
 }
 
+export function applyDemoInvitation(): void {
+  if (!HOSTED_DEMO) return
+  const fragment = location.hash.slice(1)
+  const queryStart = fragment.indexOf('?')
+  if (queryStart < 0) return
+  const params = new URLSearchParams(fragment.slice(queryStart + 1))
+  const invitation = params.get('review')
+  if (invitation === null) return
+  params.delete('review')
+  const query = params.toString()
+  history.replaceState(null, '', `${location.pathname}${location.search}#${fragment.slice(0, queryStart)}${query ? `?${query}` : ''}`)
+  if (/^[A-Za-z0-9_-]{20,128}$/.test(invitation)) setDemoAccessCode(invitation)
+}
+
 export function apiFetch(path: string, init?: RequestInit): Promise<Response> {
   const code = getDemoAccessCode()
   if (!code) return fetch(`${API_BASE_URL}${path}`, init)
