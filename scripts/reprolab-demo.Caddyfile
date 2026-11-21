@@ -1,0 +1,15 @@
+reprolab-ai.136.65.18.43.sslip.io {
+	header {
+		Cache-Control "no-store"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+	}
+
+	@operator header Authorization "Bearer *"
+	handle @operator {
+		reverse_proxy 127.0.0.1:18881
+	}
+	handle {
+		reverse_proxy 127.0.0.1:18880
+	}
+}

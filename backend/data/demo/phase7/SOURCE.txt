@@ -1,0 +1,8 @@
+Phase 7 隔离演示夹具来源说明
+
+1. 本目录全部内容仅用于本地验收演示，不对应真实论文、真实患者或真实实验。
+2. synthetic_acceptance_fixture.pdf 是在本项目内用 PyMuPDF 生成的小型英文文本 PDF；标题和正文明确写有 SYNTHETIC ACCEPTANCE FIXTURE / NOT A REAL PAPER。作者、研究内容与数值均为虚构。
+3. patient_overlap.csv 是手工编写的 10 行合成数据。P002 故意同时位于 Train 的 R002（CSV 第 3 行）和 Test 的 R008（CSV 第 9 行），用于验证患者跨集合泄漏风险；其余 patient_id 不跨集合，record_id 与特征向量均不重复。
+4. simulated_experiments.json 仅含 4 条手工编写的模拟汇总指标，未执行训练。两个方法标签不代表真实模型，数值不构成科研结论。
+5. expected.json 是独立于被测引擎的人工预期：患者重叠来自直接查看 CSV，Macro-F1 均值及差值来自手工算术，工作流状态与风险语义来自验收要求。初始化程序只用它做断言，不以引擎结果反向生成预期。
+6. manifest.sha256.json 固定上述输入文件及本说明的 SHA256 和字节数；初始化前会逐项核验，避免夹具被静默替换。

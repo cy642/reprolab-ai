@@ -1,0 +1,65 @@
+{
+  "schema_version": "phase7-demo-expected-v1",
+  "independence": "本文件由人工根据夹具原文、CSV 分组和模拟指标算术计算编写，不读取、不复制被测引擎输出。",
+  "mapping": {
+    "record_id": "record_id",
+    "entity_id": "patient_id",
+    "label": "label",
+    "split": "split",
+    "feature_columns": ["feature_a", "feature_b"],
+    "split_mapping": {}
+  },
+  "dataset": {
+    "data_row_count": 10,
+    "train_count": 6,
+    "test_count": 4,
+    "patient_overlap": [
+      {
+        "patient_id": "P002",
+        "train_record_ids": ["R002"],
+        "test_record_ids": ["R008"],
+        "csv_row_numbers": [3, 9]
+      }
+    ],
+    "required_critical_rules": {
+      "leakage_entity_cross_split": "critical",
+      "split_entity_overlap": "critical"
+    },
+    "unresolved_high_risk_count": 2
+  },
+  "experiments": {
+    "record_count": 4,
+    "external_experiment_ids": [
+      "phase7_baseline_s07",
+      "phase7_baseline_s11",
+      "phase7_candidate_s07",
+      "phase7_candidate_s11"
+    ],
+    "baseline_method": "FixtureBaseline",
+    "candidate_method": "FixtureCandidate",
+    "seeds": ["7", "11"],
+    "baseline_macro_f1_mean": 0.62,
+    "candidate_macro_f1_mean": 0.73,
+    "candidate_delta_vs_baseline_pp": 11.0,
+    "calculation": "Baseline=(0.61+0.63)/2=0.62；Candidate=(0.72+0.74)/2=0.73；差值=(0.73-0.62)*100=11 个百分点。"
+  },
+  "scenario_a": {
+    "workflow_type": "full_reproduction",
+    "status": "completed",
+    "completed_node_count": 7,
+    "approval_node_keys": ["protocol_approve", "audit_approve", "report_publish"],
+    "risk_acknowledged": true,
+    "audit_passed": false,
+    "data_validation_skipped": false,
+    "is_simulated": true,
+    "data_source": "simulated"
+  },
+  "scenario_b": {
+    "workflow_type": "analysis_only",
+    "status": "failed",
+    "failed_node_key": "experiment_analyze",
+    "skipped_node_keys": ["paper_parse", "protocol_generate", "protocol_approve", "data_audit", "audit_approve"],
+    "expected_error": "缺少实验记录：请提供 experiment_ids 或 comparison_id，否则无法生成真实指标洞察。",
+    "insight_created": false
+  }
+}

@@ -1,0 +1,11 @@
+record_id,patient_id,split,label,feature_a,feature_b
+R001,P001,Train,control,0.10,1.00
+R002,P002,Train,case,0.20,1.10
+R003,P003,Train,control,0.30,1.20
+R004,P004,Train,case,0.40,1.30
+R005,P005,Train,control,0.50,1.40
+R006,P006,Train,case,0.60,1.50
+R007,P007,Test,control,0.70,1.60
+R008,P002,Test,case,0.80,1.70
+R009,P008,Test,control,0.90,1.80
+R010,P009,Test,case,1.00,1.90

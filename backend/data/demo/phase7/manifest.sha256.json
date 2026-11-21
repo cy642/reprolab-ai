@@ -1,0 +1,26 @@
+{
+  "manifest_version": 1,
+  "algorithm": "sha256",
+  "files": {
+    "SOURCE.txt": {
+      "bytes": 1232,
+      "sha256": "444a232a0d5b9558d305961f587f28f31d0095e5a78fb7f8735e27b83cefb247"
+    },
+    "expected.json": {
+      "bytes": 2160,
+      "sha256": "27f61bdb8c2bc0f0d664d40fe10b82437c7055258e919b7d1063120175b06264"
+    },
+    "patient_overlap.csv": {
+      "bytes": 374,
+      "sha256": "f6baeb992d2eff7957e293243ce648c1450b0cdc0081664cc931993925bd01d7"
+    },
+    "simulated_experiments.json": {
+      "bytes": 2661,
+      "sha256": "fca7bdd7d5335e8c4b72d99956e2a4c412ab99068a00cebb577d370e6088f9fb"
+    },
+    "synthetic_acceptance_fixture.pdf": {
+      "bytes": 4191,
+      "sha256": "c60883b95ae70344bdb53eb5c9ffd92da7425c0c8db1d2a5802320d067ee4c54"
+    }
+  }
+}
